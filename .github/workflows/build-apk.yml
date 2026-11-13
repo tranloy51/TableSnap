@@ -1,4 +1,5 @@
 name: Build TableSnap APK
+# Rebuild after Kotlin compile fixes
 
 on:
   workflow_dispatch:
