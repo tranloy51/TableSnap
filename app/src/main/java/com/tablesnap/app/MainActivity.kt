@@ -10,9 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -123,7 +122,11 @@ private fun TableSnapApp(context: Context) {
             }
         ) { padding ->
             Column(
-                Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp),
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 18.dp)
+                    .padding(top = 8.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Card(
@@ -196,7 +199,7 @@ private fun TableSnapApp(context: Context) {
 
                 if (rows.isEmpty()) {
                     Card(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         border = BorderStroke(1.dp, Color(0xFFE3EBE5))
@@ -216,7 +219,7 @@ private fun TableSnapApp(context: Context) {
                     }
                 } else {
                     Card(
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         border = BorderStroke(1.dp, Color(0xFFE3EBE5))
@@ -228,8 +231,8 @@ private fun TableSnapApp(context: Context) {
                                 TextButton(onClick = { rows = rows.map { it + "" } }) { Text("Add column") }
                             }
                             HorizontalDivider(color = Color(0xFFE8EFEA))
-                            LazyColumn(Modifier.fillMaxSize()) {
-                                itemsIndexed(rows) { rowIndex, row ->
+                            Column {
+                                rows.forEachIndexed { rowIndex, row ->
                                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 7.dp),
                                         verticalAlignment = Alignment.CenterVertically) {
                                         Text("${rowIndex + 1}", modifier = Modifier.width(28.dp), color = muted, fontSize = 11.sp)
@@ -254,7 +257,7 @@ private fun TableSnapApp(context: Context) {
                     }
                 }
 
-                Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(
                         onClick = { csvSaver.launch("tablesnap-export.csv") },
                         enabled = rows.isNotEmpty() && !busy,
