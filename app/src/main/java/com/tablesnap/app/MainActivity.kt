@@ -64,13 +64,11 @@ private fun TableSnapApp(context: Context) {
     var message by remember { mutableStateOf(context.getString(R.string.initial_message)) }
     var script by remember { mutableStateOf(OcrScript.LATIN) }
     var menuOpen by remember { mutableStateOf(false) }
-    var sourceName by remember { mutableStateOf("") }
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             busy = true
             message = context.getString(R.string.processing)
-            sourceName = uri.lastPathSegment ?: "image"
             runOcr(context, uri, script) { result, error ->
                 busy = false
                 if (error != null) message = error
@@ -89,72 +87,165 @@ private fun TableSnapApp(context: Context) {
         if (uri != null) try { context.contentResolver.openOutputStream(uri)?.use { CsvWriter.write(it, rows) }; message = context.getString(R.string.csv_exported) } catch (e: Exception) { message = "Export failed: ${e.localizedMessage}" }
     }
 
-    MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF176B54), secondary = Color(0xFF56A58C), background = Color(0xFFF6F8F7))) {
-        Scaffold(containerColor = Color(0xFFF6F8F7), topBar = {
-            TopAppBar(title = {
-                Column {
-                    Text("TableSnap", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                    Text(stringResource(R.string.subtitle), fontSize = 12.sp, color = Color.Gray)
-                }
-            }, actions = {
-                IconButton(onClick = { rows = emptyList(); message = context.getString(R.string.ready) }) { Icon(Icons.Default.Refresh, "Reset") }
-            }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF6F8F7)))
-        }) { padding ->
-            Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, Color(0xFFE5ECE8))) {
-                    Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(stringResource(R.string.hero_title), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text("Your image is processed on-device. Nothing is uploaded to a TableSnap server.", color = Color(0xFF66736D), fontSize = 13.sp)
-                        ExposedDropdownMenuBox(expanded = menuOpen, onExpandedChange = { menuOpen = it }) {
-                            OutlinedTextField(value = script.label, onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.recognition_language)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(menuOpen) }, modifier = Modifier.menuAnchor().fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-                            ExposedDropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                OcrScript.entries.forEach { option -> DropdownMenuItem(text = { Text(option.label) }, onClick = { script = option; menuOpen = false }) }
+    val ink = Color(0xFF17352B)
+    val muted = Color(0xFF718078)
+    val canvas = Color(0xFFF4F7F4)
+    val green = Color(0xFF167653)
+    MaterialTheme(colorScheme = lightColorScheme(
+        primary = green, onPrimary = Color.White, secondary = Color(0xFF72A98F),
+        background = canvas, surface = Color.White, onSurface = ink,
+        surfaceVariant = Color(0xFFEAF1EC), outline = Color(0xFFDCE7DF)
+    )) {
+        Scaffold(
+            containerColor = canvas,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Surface(shape = RoundedCornerShape(13.dp), color = green, modifier = Modifier.size(38.dp)) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Image, null, tint = Color.White, modifier = Modifier.size(21.dp))
+                                }
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                                Text("TableSnap", fontWeight = FontWeight.ExtraBold, fontSize = 21.sp, color = ink)
+                                Text("IMAGE TO SPREADSHEET", fontWeight = FontWeight.Bold, fontSize = 9.sp, letterSpacing = 1.2.sp, color = muted)
                             }
                         }
-                        Button(onClick = { imagePicker.launch("image/*") }, enabled = !busy, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)) {
-                            Icon(Icons.Default.Image, null); Spacer(Modifier.width(8.dp)); Text(if (busy) "Processing…" else stringResource(R.string.choose_image), fontWeight = FontWeight.SemiBold)
+                    },
+                    actions = {
+                        IconButton(onClick = { rows = emptyList(); message = context.getString(R.string.ready) }) {
+                            Icon(Icons.Default.Refresh, "Reset", tint = muted)
                         }
-                        Text(message, color = Color(0xFF66736D), fontSize = 12.sp)
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = canvas)
+                )
+            }
+        ) { padding ->
+            Column(
+                Modifier.fillMaxSize().padding(padding).padding(horizontal = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Card(
+                    shape = RoundedCornerShape(26.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF173F32)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                ) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(13.dp)
+                    ) {
+                        Surface(color = Color(0xFF285846), shape = RoundedCornerShape(50.dp)) {
+                            Text("SMART TABLE SCANNER", modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
+                                color = Color(0xFFD7F2E2), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        }
+                        Text("Turn screenshots\ninto spreadsheets.", fontSize = 25.sp, lineHeight = 30.sp,
+                            fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        Text("Extract, review and export your data in seconds. Your images stay on this device.",
+                            color = Color(0xFFD0E2D8), fontSize = 13.sp, lineHeight = 19.sp)
+                        Button(
+                            onClick = { imagePicker.launch("image/*") },
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth().height(54.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBDE8CE), contentColor = Color(0xFF153B2D))
+                        ) {
+                            Icon(Icons.Default.Image, null); Spacer(Modifier.width(9.dp))
+                            Text(if (busy) "Reading image…" else "Choose an image", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = BorderStroke(1.dp, Color(0xFFE3EBE5))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text("RECOGNITION SETTINGS", color = muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        ExposedDropdownMenuBox(expanded = menuOpen, onExpandedChange = { menuOpen = it }) {
+                            OutlinedTextField(
+                                value = script.label, onValueChange = {}, readOnly = true,
+                                label = { Text(stringResource(R.string.recognition_language)) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(menuOpen) },
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp), colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = green, unfocusedBorderColor = Color(0xFFDCE7DF)
+                                )
+                            )
+                            ExposedDropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                                OcrScript.entries.forEach { option ->
+                                    DropdownMenuItem(text = { Text(option.label) }, onClick = { script = option; menuOpen = false })
+                                }
+                            }
+                        }
+                        Text(message, color = muted, fontSize = 12.sp, lineHeight = 17.sp)
                     }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        Text(stringResource(R.string.table_preview), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        Text(if (rows.isEmpty()) stringResource(R.string.no_data) else "${rows.size} rows · ${rows.maxOfOrNull { it.size } ?: 0} columns", color = Color.Gray, fontSize = 12.sp)
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("Your table", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                        Text(if (rows.isEmpty()) "Your extracted data will appear here" else "${rows.size} rows · ${rows.maxOfOrNull { it.size } ?: 0} columns",
+                            color = muted, fontSize = 12.sp)
                     }
                     TextButton(onClick = { rows = rows + listOf(List(maxOf(1, rows.maxOfOrNull { it.size } ?: 1)) { "" }) }) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(17.dp)); Text(stringResource(R.string.add_row))
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(17.dp)); Spacer(Modifier.width(4.dp)); Text("Add row")
                     }
                 }
 
                 if (rows.isEmpty()) {
-                    Card(modifier = Modifier.fillMaxWidth().weight(1f), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, Color(0xFFE5ECE8))) {
-                        Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Icon(Icons.Default.Image, null, tint = Color(0xFF9BB8AC), modifier = Modifier.size(42.dp))
-                                Text(stringResource(R.string.empty_title), fontWeight = FontWeight.Medium)
-                                Text(stringResource(R.string.empty_tip), color = Color.Gray, fontSize = 12.sp)
+                    Card(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Color(0xFFE3EBE5))
+                    ) {
+                        Box(Modifier.fillMaxSize().padding(22.dp), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFFEAF4ED), modifier = Modifier.size(68.dp)) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Image, null, tint = green, modifier = Modifier.size(31.dp))
+                                    }
+                                }
+                                Text("Ready when you are", fontWeight = FontWeight.Bold, color = ink, fontSize = 16.sp)
+                                Text("Choose a clear screenshot containing a table to get started.",
+                                    color = muted, fontSize = 12.sp, lineHeight = 18.sp)
                             }
                         }
                     }
                 } else {
-                    Card(modifier = Modifier.weight(1f).fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, Color(0xFFE5ECE8))) {
+                    Card(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Color(0xFFE3EBE5))
+                    ) {
                         Column {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(stringResource(R.string.edit_cells), color = Color(0xFF718078), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                TextButton(onClick = { rows = rows.map { it + "" } }) { Text(stringResource(R.string.add_column)) }
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("EDIT CELLS", color = muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                TextButton(onClick = { rows = rows.map { it + "" } }) { Text("Add column") }
                             }
-                            HorizontalDivider(color = Color(0xFFE8EEEA))
+                            HorizontalDivider(color = Color(0xFFE8EFEA))
                             LazyColumn(Modifier.fillMaxSize()) {
                                 itemsIndexed(rows) { rowIndex, row ->
-                                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Text("${rowIndex + 1}", modifier = Modifier.width(28.dp), color = Color.Gray, fontSize = 11.sp)
+                                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 7.dp),
+                                        verticalAlignment = Alignment.CenterVertically) {
+                                        Text("${rowIndex + 1}", modifier = Modifier.width(28.dp), color = muted, fontSize = 11.sp)
                                         row.forEachIndexed { colIndex, cell ->
-                                            BasicTextField(value = cell, onValueChange = { newValue -> rows = rows.toMutableList().also { list -> list[rowIndex] = list[rowIndex].toMutableList().also { it[colIndex] = newValue } } }, modifier = Modifier.width(132.dp).padding(end = 6.dp).then(Modifier), singleLine = true, textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp, color = Color(0xFF20342B)))
-                                            if (colIndex < row.lastIndex) Spacer(Modifier.width(3.dp))
+                                            Surface(shape = RoundedCornerShape(8.dp), color = if (rowIndex == 0) Color(0xFFEAF4ED) else Color(0xFFF7F9F7)) {
+                                                BasicTextField(value = cell, onValueChange = { newValue ->
+                                                    rows = rows.toMutableList().also { list -> list[rowIndex] = list[rowIndex].toMutableList().also { it[colIndex] = newValue } }
+                                                }, modifier = Modifier.width(132.dp).padding(horizontal = 9.dp, vertical = 10.dp),
+                                                    singleLine = true, textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp,
+                                                        color = ink, fontWeight = if (rowIndex == 0) FontWeight.SemiBold else FontWeight.Normal))
+                                            }
+                                            Spacer(Modifier.width(6.dp))
                                         }
-                                        IconButton(onClick = { rows = rows.toMutableList().also { it.removeAt(rowIndex) } }, modifier = Modifier.size(30.dp)) { Icon(Icons.Default.Delete, "Delete row", tint = Color(0xFF9A7777), modifier = Modifier.size(16.dp)) }
+                                        IconButton(onClick = { rows = rows.toMutableList().also { it.removeAt(rowIndex) } }, modifier = Modifier.size(30.dp)) {
+                                            Icon(Icons.Default.Delete, "Delete row", tint = Color(0xFFB17D7D), modifier = Modifier.size(16.dp))
+                                        }
                                     }
                                     HorizontalDivider(color = Color(0xFFF0F3F1))
                                 }
@@ -164,11 +255,22 @@ private fun TableSnapApp(context: Context) {
                 }
 
                 Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick = { csvSaver.launch("tablesnap-export.csv") }, enabled = rows.isNotEmpty() && !busy, modifier = Modifier.weight(1f).height(50.dp), shape = RoundedCornerShape(13.dp)) {
-                        Icon(Icons.Default.FileDownload, null); Spacer(Modifier.width(5.dp)); Text(stringResource(R.string.export_csv))
+                    OutlinedButton(
+                        onClick = { csvSaver.launch("tablesnap-export.csv") },
+                        enabled = rows.isNotEmpty() && !busy,
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        shape = RoundedCornerShape(15.dp),
+                        border = BorderStroke(1.dp, Color(0xFFB8CFC0))
+                    ) {
+                        Icon(Icons.Default.FileDownload, null); Spacer(Modifier.width(6.dp)); Text("CSV", fontWeight = FontWeight.Bold)
                     }
-                    Button(onClick = { xlsxSaver.launch("tablesnap-export.xlsx") }, enabled = rows.isNotEmpty() && !busy, modifier = Modifier.weight(1f).height(50.dp), shape = RoundedCornerShape(13.dp)) {
-                        Icon(Icons.Default.FileDownload, null); Spacer(Modifier.width(5.dp)); Text(stringResource(R.string.export_excel))
+                    Button(
+                        onClick = { xlsxSaver.launch("tablesnap-export.xlsx") },
+                        enabled = rows.isNotEmpty() && !busy,
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        shape = RoundedCornerShape(15.dp)
+                    ) {
+                        Icon(Icons.Default.FileDownload, null); Spacer(Modifier.width(6.dp)); Text("Export Excel", fontWeight = FontWeight.Bold)
                     }
                 }
             }
