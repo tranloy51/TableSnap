@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">TableSnap</string>
+    <string name="subtitle">Screenshot to spreadsheet</string>
+    <string name="hero_title">Turn an image into editable data</string>
+    <string name="privacy_note">Your image is processed on this device. Nothing is uploaded to a TableSnap server.</string>
+    <string name="recognition_language">Recognition language</string>
+    <string name="choose_image">Choose image</string>
+    <string name="table_preview">Table preview</string>
+    <string name="no_data">No data yet</string>
+    <string name="add_row">Add row</string>
+    <string name="empty_title">Your editable table will appear here</string>
+    <string name="empty_tip">Tip: clear screenshots with visible row and column spacing work best.</string>
+    <string name="edit_cells">EDIT CELLS</string>
+    <string name="add_column">Add column</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="export_excel">Export Excel</string>
+    <string name="initial_message">Import a screenshot or photo containing a table to get started.</string>
+    <string name="processing">Reading image on this device…</string>
+    <string name="ready">Ready for a new image.</string>
+    <string name="xlsx_exported">Excel file exported.</string>
+    <string name="csv_exported">CSV file exported.</string>
+    <string name="recognized_rows">Recognized %1$d rows. Review the cells before exporting.</string>
+    <string name="no_text">No table text found. Try a sharper image or another recognition script.</string>
+</resources>
