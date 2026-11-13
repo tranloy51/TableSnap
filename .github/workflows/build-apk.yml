@@ -1,4 +1,4 @@
-name: Build TableSnap APK
+name: Build TableSnap Play-ready artifacts
 # Rebuild after Kotlin compile fixes
 
 on:
@@ -28,20 +28,31 @@ jobs:
           packages: 'platform-tools'
 
       - name: Install Android platform
-        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: '8.11.1'
 
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
+
+      - name: Build release Android App Bundle
+        run: gradle --no-daemon bundleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: TableSnap-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload unsigned release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TableSnap-release-aab-unsigned
+          path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
