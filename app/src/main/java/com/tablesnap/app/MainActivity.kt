@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -205,7 +206,7 @@ private fun extractCells(result: Text): List<List<String>> {
     val rows = mutableListOf<MutableList<WordBox>>()
     for (word in words) {
         val target = rows.minByOrNull { row -> kotlin.math.abs(row.map { it.centerY }.average().toInt() - word.centerY) }
-        if (target != null && kotlin.math.abs(target.map { it.centerY }.average().toInt() - word.centerY) <= (word.height * 0.65).coerceAtLeast(8)) target.add(word)
+        if (target != null && kotlin.math.abs(target.map { it.centerY }.average().toInt() - word.centerY) <= (word.height * 0.65).coerceAtLeast(8.0)) target.add(word)
         else rows.add(mutableListOf(word))
     }
     return rows.sortedBy { it.map(WordBox::centerY).average() }.map { row ->
