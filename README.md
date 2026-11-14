@@ -10,7 +10,7 @@ TableSnap is a native Android app that converts screenshots/photos containing ta
 - Basic geometry-based row/cell reconstruction from OCR word bounding boxes.
 - Editable cell preview, add-row/add-column controls and row deletion.
 - Local XLSX generation (minimal Office Open XML workbook) and UTF-8 CSV export.
-- No app server, account, analytics SDK, ads SDK or network permission in this MVP.
+- No TableSnap-operated server, account system, advertising or billing is implemented. The bundled ML Kit SDK processes images and OCR text on-device, but sends limited diagnostics and usage metrics to Google over HTTPS; see the privacy policy and ML Kit disclosure guide.
 - App name localized for English, Simplified Chinese, Malay and Indonesian based on Android system locale.
 
 ## Open and run
@@ -36,7 +36,7 @@ This source package does not include a prebuilt APK/AAB or Gradle wrapper JAR. A
 
 ## Privacy
 
-The MVP processes the selected image locally using the on-device ML Kit recognizer. It does not request broad storage access and does not include a network permission. Android's system photo picker grants access only to the selected item. If cloud processing, analytics, crash reporting, ads or billing are added later, update the privacy policy and Google Play Data safety declaration accordingly.
+The MVP processes the selected image and OCR text locally using bundled ML Kit recognizers. ML Kit may send limited SDK diagnostics and usage metrics to Google over HTTPS, but does not send the image content or recognized text to Google servers. Android's system photo picker grants access only to the selected item. The app does not operate an account or backend service, and does not include ads or billing. See the privacy policy and Google ML Kit data disclosure guide for details.
 
 ## Suggested QA before publishing
 
