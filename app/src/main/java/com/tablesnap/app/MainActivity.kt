@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +60,7 @@ private enum class OcrScript(val label: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TableSnapApp(context: Context) {
+    val uriHandler = LocalUriHandler.current
     var rows by remember { mutableStateOf<List<List<String>>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf(context.getString(R.string.initial_message)) }
@@ -276,6 +279,16 @@ private fun TableSnapApp(context: Context) {
                         Icon(Icons.Default.FileDownload, null); Spacer(Modifier.width(6.dp)); Text("Export Excel", fontWeight = FontWeight.Bold)
                     }
                 }
+
+                Text(
+                    "Privacy Policy",
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        uriHandler.openUri("https://tranloy51.github.io/TableSnap/")
+                    }.padding(vertical = 10.dp),
+                    color = green,
+                    fontSize = 12.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
     }
